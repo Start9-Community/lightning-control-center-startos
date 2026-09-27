@@ -1,5 +1,6 @@
 import { i18n } from './i18n'
 import { sdk } from './sdk'
+import { storeJson } from './fileModels/store.json'
 import {
   lndControlHostId,
   lndMacaroonPath,
@@ -22,6 +23,10 @@ export const main = sdk.setupMain(async ({ effects }) => {
       internalPort: lndRestPort,
     })
     .const()
+
+  // Generated on install by init/seedCredentials.ts. Reading with .const()
+  // means a password reset restarts LCC with the new credentials.
+  const store = await storeJson.read().const(effects)
 
   const subcontainer = await sdk.SubContainer.of(
     effects,
@@ -60,6 +65,8 @@ export const main = sdk.setupMain(async ({ effects }) => {
         // mounted at /data (see mountVolume below), not the app image itself —
         // otherwise it resets to a fresh first-boot state on every upgrade.
         LCC_DATA_DIR: '/data',
+        LCC_PASSWORD: store?.lccPassword ?? '',
+        LCC_SESSION_SECRET: store?.sessionSecret ?? '',
       },
     },
     ready: {
