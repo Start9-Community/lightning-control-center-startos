@@ -5,5 +5,4 @@ node_modules/
 .vscode/
 docker-images
 javascript
-ncc-cache*.s9pk
-*.s9pk.rtf
+ncc-cache
