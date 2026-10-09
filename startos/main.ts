@@ -53,6 +53,7 @@ export const main = sdk.setupMain(async ({ effects }) => {
         LND_MACAROON_PATH: `${lndMount}/data/chain/bitcoin/mainnet/admin.macaroon`,
         // LND's tls.cert chains to the StartOS root CA that also signs the bridge's cert.
         LND_TLS_CERT_PATH: `${lndMount}/tls.cert`,
+        LCC_PASSWORD_MANAGED: '1',
         LCC_PASSWORD: store?.lccPassword ?? '',
         LCC_SESSION_SECRET: store?.sessionSecret ?? '',
       },

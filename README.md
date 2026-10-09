@@ -65,12 +65,12 @@ Two models, both on `lcc-data`.
 | File         | Format | Written by                                       |
 | ------------ | ------ | ------------------------------------------------ |
 | `store.json` | JSON   | Init (session secret) and the Set Login Password action |
-| `data.json`  | JSON   | LCC itself; init only creates it                 |
+| `data.json`  | JSON   | LCC itself; init seeds it if missing             |
 
 - **`store.json`** holds `lccPassword` and `sessionSecret`, StartOS-side state LCC has no way to create for itself. Both reach LCC as environment variables (`LCC_PASSWORD`, `LCC_SESSION_SECRET`) and are read reactively, so changing either restarts LCC. Init generates `sessionSecret` if it is missing and never touches `lccPassword`; only the action sets that.
-- **`data.json`** belongs to LCC. Init creates it as `{}` if it does not exist, because LCC reads it on most settings requests but never creates it. Existing keys are never rewritten, so a hand edit survives.
+- **`data.json`** belongs to LCC. Init seeds it as `{}` if it does not exist, preserving existing settings. LCC can also create it itself.
 
-LCC reads `LCC_PASSWORD` on every start and has no password storage of its own on this image, so a change to the store is authoritative from the next start.
+`LCC_PASSWORD_MANAGED=1` disables in-app password changes and makes `LCC_PASSWORD` authoritative, even if `data.json` contains an upstream password hash. LCC reads the environment password on every start.
 
 ## Dependencies
 
@@ -92,7 +92,7 @@ One interface.
 | ------------- | ------ | ---- | ---- | -------- | -------------------------- |
 | Web Interface | `main` | ui   | 8765 | HTTP     | The LCC dashboard and API  |
 
-Bound on the `lcc-ui` host. Every page and API route except the login page and icons requires a session cookie. The cookie is marked `Secure`, so sign in over an HTTPS address.
+Bound on the `lcc-ui` host. Dashboard pages and management API routes require a session cookie; password login endpoints, icons and Nostr authentication endpoints are public. The cookie is marked `Secure`, so sign in over an HTTPS address.
 
 LCC makes outbound requests of its own: `mempool.space` for fee rates and the BTC/USD price, and `api.ipify.org` for the IP check.
 
@@ -173,6 +173,7 @@ startos_managed_env_vars:
   - LND_REST_HOST
   - LND_MACAROON_PATH
   - LND_TLS_CERT_PATH
+  - LCC_PASSWORD_MANAGED
   - LCC_PASSWORD
   - LCC_SESSION_SECRET
 dependencies:
