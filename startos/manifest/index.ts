@@ -5,17 +5,20 @@ export const manifest = setupManifest({
   id: 'lightning-control-center',
   title: 'Lightning Control Center',
   license: 'MIT',
-  packageRepo: 'https://github.com/lioranecho-cpu/lightning-control-center-startos',
+  packageRepo:
+    'https://github.com/Start9-Community/lightning-control-center-startos',
   upstreamRepo: 'https://github.com/lioranecho-cpu/lightning-control-center',
-  marketingUrl: 'https://github.com/lioranecho-cpu/lightning-control-center',
-  donationUrl: 'https://github.com/lioranecho-cpu/lightning-control-center',
+  marketingUrl: 'https://satslist.shop',
+  donationUrl: null,
   description: { short, long },
-  volumes: ['data'],
+  volumes: ['lcc-data'],
   images: {
     lcc: {
-      source: { dockerTag: 'sparkielabs/lightning-control-center:0.1.4' },
+      source: {
+        dockerTag:
+          'sparkielabs/lightning-control-center:0.2.2@sha256:766de7a79820e5adb9fd8c11a03132654ef582bd5f66d1ce6a8d1ea3b369b744',
+      },
       arch: ['x86_64', 'aarch64'],
     },
   },
-  dependencies: {},
 })
