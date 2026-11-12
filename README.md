@@ -37,24 +37,24 @@
 
 The upstream image, unmodified, pinned by digest.
 
-| Property      | Value                                                     |
-| ------------- | --------------------------------------------------------- |
-| Image         | `sparkielabs/lightning-control-center` (Docker Hub)       |
-| Architectures | x86_64, aarch64                                           |
+| Property      | Value                                                                          |
+| ------------- | ------------------------------------------------------------------------------ |
+| Image         | `sparkielabs/lightning-control-center` (Docker Hub)                            |
+| Architectures | x86_64, aarch64                                                                |
 | Entrypoint    | The image's own (`uvicorn` serving the FastAPI app), via `sdk.useEntrypoint()` |
 
-| Subcontainer | Purpose                                                            |
-| ------------ | ------------------------------------------------------------------ |
-| `lcc`        | The whole application: web UI, API and its background automation  |
+| Subcontainer | Purpose                                                          |
+| ------------ | ---------------------------------------------------------------- |
+| `lcc`        | The whole application: web UI, API and its background automation |
 
 ## Volume and Data Layout
 
 One volume of its own, plus LND's volume mounted read-only.
 
-| Volume                | Mount Point | Purpose                                                                                     |
-| --------------------- | ----------- | ------------------------------------------------------------------------------------------- |
-| `lcc-data`            | `/data`     | LCC's data directory (`LCC_DATA_DIR`) and the package's `store.json`                        |
-| LND's `main` (read-only) | `/mnt/lnd` | Source of LND's `tls.cert` and the mainnet `admin.macaroon`                               |
+| Volume                   | Mount Point | Purpose                                                              |
+| ------------------------ | ----------- | -------------------------------------------------------------------- |
+| `lcc-data`               | `/data`     | LCC's data directory (`LCC_DATA_DIR`) and the package's `store.json` |
+| LND's `main` (read-only) | `/mnt/lnd`  | Source of LND's `tls.cert` and the mainnet `admin.macaroon`          |
 
 LCC writes everything it keeps to `/data`: `data.json` (settings, per-channel strategies and automation), `journal.json` (the node journal) and `nwc_connections.json`. There is no database.
 
@@ -62,10 +62,10 @@ LCC writes everything it keeps to `/data`: `data.json` (settings, per-channel st
 
 Two models, both on `lcc-data`.
 
-| File         | Format | Written by                                       |
-| ------------ | ------ | ------------------------------------------------ |
+| File         | Format | Written by                                              |
+| ------------ | ------ | ------------------------------------------------------- |
 | `store.json` | JSON   | Init (session secret) and the Set Login Password action |
-| `data.json`  | JSON   | LCC itself; init seeds it if missing             |
+| `data.json`  | JSON   | LCC itself; init seeds it if missing                    |
 
 - **`store.json`** holds `lccPassword` and `sessionSecret`, StartOS-side state LCC has no way to create for itself. Both reach LCC as environment variables (`LCC_PASSWORD`, `LCC_SESSION_SECRET`) and are read reactively, so changing either restarts LCC. Init generates `sessionSecret` if it is missing and never touches `lccPassword`; only the action sets that.
 - **`data.json`** belongs to LCC. Init seeds it as `{}` if it does not exist, preserving existing settings. LCC can also create it itself.
@@ -76,9 +76,9 @@ Two models, both on `lcc-data`.
 
 LND is required.
 
-| Dependency | Required | Kind      | Health checks           | Mount                          |
-| ---------- | -------- | --------- | ----------------------- | ------------------------------ |
-| LND        | Yes      | `running` | `lnd`, `sync-progress`  | `main` at `/mnt/lnd`, read-only |
+| Dependency | Required | Kind      | Health checks          | Mount                           |
+| ---------- | -------- | --------- | ---------------------- | ------------------------------- |
+| LND        | Yes      | `running` | `lnd`, `sync-progress` | `main` at `/mnt/lnd`, read-only |
 
 LCC talks to LND's REST API over the internal StartOS bridge (`LND_REST_HOST`), authenticates with LND's `admin.macaroon`, and verifies TLS against LND's `tls.cert`, which chains to the same StartOS root CA as the bridge's certificate. The admin macaroon is what lets LCC open and close channels, change fees, pay invoices and rebalance — it has full control of the node.
 
@@ -88,9 +88,9 @@ If LND's REST binding does not exist yet, `main` refuses to start with an error 
 
 One interface.
 
-| Interface     | Id     | Type | Port | Protocol | Purpose                    |
-| ------------- | ------ | ---- | ---- | -------- | -------------------------- |
-| Web Interface | `main` | ui   | 8765 | HTTP     | The LCC dashboard and API  |
+| Interface     | Id     | Type | Port | Protocol | Purpose                   |
+| ------------- | ------ | ---- | ---- | -------- | ------------------------- |
+| Web Interface | `main` | ui   | 8765 | HTTP     | The LCC dashboard and API |
 
 Bound on the `lcc-ui` host. Dashboard pages and management API routes require a session cookie; password login endpoints, icons and Nostr authentication endpoints are public. The cookie is marked `Secure`, so sign in over an HTTPS address.
 
@@ -122,9 +122,9 @@ Generates a new random login password and returns it. Run it from the install ta
 
 One task, created by the package.
 
-| Task               | Severity   | Raised when                  | Cleared when            |
-| ------------------ | ---------- | ---------------------------- | ----------------------- |
-| Set Login Password | `critical` | `store.json` has no password | The action runs         |
+| Task               | Severity   | Raised when                  | Cleared when    |
+| ------------------ | ---------- | ---------------------------- | --------------- |
+| Set Login Password | `critical` | `store.json` has no password | The action runs |
 
 It is checked on every init, not only at install, so a store without a password always brings it back. A restored backup carries the password, so restore does not raise it.
 
