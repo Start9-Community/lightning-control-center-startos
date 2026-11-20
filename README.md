@@ -49,12 +49,12 @@ The upstream image, unmodified, pinned by digest.
 
 ## Volume and Data Layout
 
-One volume of its own, plus LND's volume mounted read-only.
+One volume of its own, plus LND's `admin` credential tier mounted read-only.
 
-| Volume                   | Mount Point | Purpose                                                              |
-| ------------------------ | ----------- | -------------------------------------------------------------------- |
-| `lcc-data`               | `/data`     | LCC's data directory (`LCC_DATA_DIR`) and the package's `store.json` |
-| LND's `main` (read-only) | `/mnt/lnd`  | Source of LND's `tls.cert` and the mainnet `admin.macaroon`          |
+| Volume                                    | Mount Point | Purpose                                                              |
+| ----------------------------------------- | ----------- | -------------------------------------------------------------------- |
+| `lcc-data`                                | `/data`     | LCC's data directory (`LCC_DATA_DIR`) and the package's `store.json` |
+| LND's `public` (read-only, `admin/` only) | `/mnt/lnd`  | LND's `tls.cert` and mainnet `admin.macaroon`, nothing else          |
 
 LCC writes everything it keeps to `/data`: `data.json` (settings, per-channel strategies and automation), `journal.json` (the node journal) and `nwc_connections.json`. There is no database.
 
@@ -76,11 +76,11 @@ Two models, both on `lcc-data`.
 
 LND is required.
 
-| Dependency | Required | Kind      | Health checks          | Mount                           |
-| ---------- | -------- | --------- | ---------------------- | ------------------------------- |
-| LND        | Yes      | `running` | `lnd`, `sync-progress` | `main` at `/mnt/lnd`, read-only |
+| Dependency | Required                     | Kind      | Health checks          | Mount                                             |
+| ---------- | ---------------------------- | --------- | ---------------------- | ------------------------------------------------- |
+| LND        | Yes (0.21.6-beta:3 or later) | `running` | `lnd`, `sync-progress` | `public` (`admin/` tier) at `/mnt/lnd`, read-only |
 
-LCC talks to LND's REST API over the internal StartOS bridge (`LND_REST_HOST`), authenticates with LND's `admin.macaroon`, and verifies TLS against LND's `tls.cert`, which chains to the same StartOS root CA as the bridge's certificate. The admin macaroon is what lets LCC open and close channels, change fees, pay invoices and rebalance — it has full control of the node.
+LCC talks to LND's REST API over the internal StartOS bridge (`LND_REST_HOST`), authenticates with LND's `admin.macaroon`, and verifies TLS against LND's `tls.cert`, which chains to the same StartOS root CA as the bridge's certificate. The admin macaroon is what lets LCC open and close channels, change fees, pay invoices and rebalance — it has full control of the node. It comes from the `admin/` tier LND publishes on its `public` volume, which holds only that macaroon and the certificate; LND's `main` volume, with its wallet password and seed, is never mounted.
 
 If LND's REST binding does not exist yet, `main` refuses to start with an error naming LND, and starts once LND is running.
 
