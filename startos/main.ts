@@ -38,8 +38,8 @@ export const main = sdk.setupMain(async ({ effects }) => {
         })
         .mountDependency<typeof lndManifest>({
           dependencyId: 'lnd',
-          volumeId: 'main',
-          subpath: null,
+          volumeId: 'public',
+          subpath: 'admin',
           mountpoint: lndMount,
           readonly: true,
         }),
@@ -50,7 +50,7 @@ export const main = sdk.setupMain(async ({ effects }) => {
       env: {
         LCC_DATA_DIR: '/data',
         LND_REST_HOST: `https://${lndRest}`,
-        LND_MACAROON_PATH: `${lndMount}/data/chain/bitcoin/mainnet/admin.macaroon`,
+        LND_MACAROON_PATH: `${lndMount}/admin.macaroon`,
         // LND's tls.cert chains to the StartOS root CA that also signs the bridge's cert.
         LND_TLS_CERT_PATH: `${lndMount}/tls.cert`,
         LCC_PASSWORD_MANAGED: '1',
