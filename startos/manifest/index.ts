@@ -16,7 +16,7 @@ export const manifest = setupManifest({
     lcc: {
       source: {
         dockerTag:
-          'sparkielabs/lightning-control-center:0.2.2@sha256:766de7a79820e5adb9fd8c11a03132654ef582bd5f66d1ce6a8d1ea3b369b744',
+          'sparkielabs/lightning-control-center:0.2.3@sha256:f7f435dfb744824650dbc744389c589f7953b8b4fbbc8524753549bb79a4f198',
       },
       arch: ['x86_64', 'aarch64'],
     },
